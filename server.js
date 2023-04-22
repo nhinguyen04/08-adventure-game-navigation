@@ -103,8 +103,51 @@ const server = http.createServer((req, res) => {
     }
 
     // Phase 5: POST /items/:itemId/:action
+    if (req.method === 'POST' && req.url.startsWith('/items/')) {
+      const urlSplit = req.url.split('/');
+
+      if (urlSplit.length === 4) {
+        const itemID = urlSplit[2];
+        const action = urlSplit[3];
+
+        try {
+          switch(action) {
+            case 'drop':
+              player.dropItem(itemID);
+              break;
+            case 'eat':
+              player.eatItem(itemID);
+              break;
+            case 'take':
+              player.takeItem(itemID);
+              break;
+          }
+
+          // Redirect player to a randomly selected room
+          const key = 'n' || 'e' || 'w' || 's' || null;
+          res.statusCode = 302;
+          res.setHeader('Location', `rooms/${currId}/${key}`);
+          return res.end();
+        }
+
+        catch (e) {
+          const htmlPage = fs.readFileSync('./views/error.html', 'utf-8');
+
+          const resBody = htmlPage
+            .replace(/#{errorMessage}/g, e.message)
+            .replace(/#{roomId}/g, player.currentRoom.id);
+
+          res.statusCode = 302;
+          res.setHeader('Location', 'views/error.html');
+          return res.end(resBody);
+        }
+      }
+    }
 
     // Phase 6: Redirect if no matching route handlers
+    res.statusCode = 302;
+    res.setHeader('Location', `/rooms/${player.currentRoom.id}`);
+    return res.end();
   })
 });
 
