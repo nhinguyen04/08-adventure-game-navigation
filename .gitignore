@@ -1,0 +1,4 @@
+cypress/plugins
+cypress/screenshots
+cypress/support
+node_modules
